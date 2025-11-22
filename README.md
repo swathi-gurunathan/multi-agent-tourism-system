@@ -6,8 +6,10 @@ A tourism planning system with AI agents that provide weather information and to
 
 - **Weather Agent**: Fetches current weather and forecasts using Open-Meteo API
 - **Places Agent**: Suggests tourist attractions using Overpass API and OpenStreetMap data
-- **Parent Tourism Agent**: Orchestrates both child agents based on user queries using pattern matching
+- **Parent Tourism Agent**: Uses LLMs (Groq/OpenAI/Claude) for intelligent intent recognition with pattern-matching fallback
 - **Web Interface**: Modern, responsive web UI for easy interaction
+- **Auto-Translation**: Tourist places translated to English
+- **Multiple LLM Support**: Groq (FREE), OpenAI, or Anthropic Claude
 
 ## Setup
 
@@ -16,12 +18,28 @@ A tourism planning system with AI agents that provide weather information and to
 pip install -r requirements.txt
 ```
 
-2. Run the web application:
+2. **(Optional)** Get a FREE API key from Groq:
+   - Visit: https://console.groq.com
+   - Create account and get API key
+   - Create `.env` file:
+   ```
+   LLM_PROVIDER=groq
+   GROQ_API_KEY=your_key_here
+   ```
+   - **Note**: The system works without an API key using pattern matching!
+
+3. Run the web application:
 ```bash
 python app.py
 ```
 
-3. Open http://localhost:5000 in your browser
+4. Open http://localhost:5000 in your browser
+
+## Supported LLM Providers
+
+- **Groq** (Recommended) - FREE, fast inference
+- **OpenAI** - GPT-3.5/GPT-4 (Paid)
+- **Anthropic** - Claude (Paid)
 
 ## Usage Examples
 

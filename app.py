@@ -2,7 +2,7 @@
 Flask web application for the Multi-Agent Tourism System.
 """
 import os
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, session
 from flask_cors import CORS
 from dotenv import load_dotenv
 from tourism_agent import TourismAgent
@@ -11,10 +11,15 @@ from tourism_agent import TourismAgent
 load_dotenv()
 
 app = Flask(__name__)
-CORS(app)
+app.secret_key = os.getenv('SECRET_KEY', os.urandom(24))  # For session management
+CORS(app, supports_credentials=True)
 
-# Initialize the tourism agent (no API key needed)
-tourism_agent = TourismAgent()
+# Initialize the tourism agent
+# Supports: Groq (free), OpenAI, Anthropic
+# Set LLM_PROVIDER in .env (default: groq)
+# Get free Groq API key at: https://console.groq.com
+api_key = os.getenv('GROQ_API_KEY') or os.getenv('OPENAI_API_KEY') or os.getenv('ANTHROPIC_API_KEY')
+tourism_agent = TourismAgent(api_key)
 
 
 @app.route('/')
@@ -28,8 +33,8 @@ def process_query():
     """
     Process user query and return response.
     
-    Expected JSON: {"query": "user input"}
-    Returns JSON: {"response": "agent response", "success": true/false}
+    Expected JSON: {"query": "user input", "history": [optional conversation history]}
+    Returns JSON: {"response": "agent response", "success": true/false, "history": updated history}
     """
     try:
         data = request.get_json()
@@ -48,12 +53,21 @@ def process_query():
                 'error': 'Query cannot be empty'
             }), 400
         
+        # Get conversation history from request or session
+        history = data.get('history', [])
+        if not history and 'conversation_history' in session:
+            history = session['conversation_history']
+        
         # Process the query using the tourism agent
-        response = tourism_agent.process_query(user_query)
+        response = tourism_agent.process_query(user_query, history)
+        
+        # Update session with conversation history
+        session['conversation_history'] = tourism_agent.conversation_history
         
         return jsonify({
             'success': True,
-            'response': response
+            'response': response,
+            'history': tourism_agent.conversation_history
         })
         
     except Exception as e:

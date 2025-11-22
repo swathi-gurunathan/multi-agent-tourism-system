@@ -4,6 +4,7 @@ Places Agent - Fetches tourist attractions using Overpass API.
 import requests
 from typing import List, Optional
 from geocoding import get_coordinates
+from deep_translator import GoogleTranslator
 
 
 class PlacesAgent:
@@ -11,6 +12,27 @@ class PlacesAgent:
     
     def __init__(self):
         self.base_url = "https://overpass-api.de/api/interpreter"
+        self.translator = GoogleTranslator(source='auto', target='en')
+    
+    def translate_to_english(self, text: str) -> str:
+        """
+        Translate text to English if it's in another language.
+        
+        Args:
+            text: Text to translate
+            
+        Returns:
+            Translated text in English
+        """
+        try:
+            # Only translate if text contains non-ASCII characters
+            if any(ord(char) > 127 for char in text):
+                translated = self.translator.translate(text)
+                return translated if translated else text
+            return text
+        except Exception as e:
+            # If translation fails, return original text
+            return text
     
     def get_tourist_places(self, place_name: str, limit: int = 5) -> Optional[List[str]]:
         """
@@ -65,8 +87,14 @@ class PlacesAgent:
                 name = tags.get('name')
                 
                 if name and name not in seen_names:
-                    places.append(name)
-                    seen_names.add(name)
+                    # Translate to English if needed
+                    translated_name = self.translate_to_english(name)
+                    
+                    # Avoid duplicates (original and translated)
+                    if translated_name not in seen_names:
+                        places.append(translated_name)
+                        seen_names.add(name)
+                        seen_names.add(translated_name)
                     
                     if len(places) >= limit:
                         break

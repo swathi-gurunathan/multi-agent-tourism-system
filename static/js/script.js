@@ -4,6 +4,9 @@ const queryForm = document.getElementById('queryForm');
 const queryInput = document.getElementById('queryInput');
 const sendButton = document.getElementById('sendButton');
 
+// Conversation history
+let conversationHistory = [];
+
 // Fill example query
 function fillExample(element) {
     queryInput.value = element.textContent;
@@ -139,14 +142,18 @@ queryForm.addEventListener('submit', async (e) => {
     showLoading();
     
     try {
-        // Send request to backend
+        // Send request to backend with conversation history
         console.log('Sending request to /api/query');
         const response = await fetch('/api/query', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ query: query })
+            body: JSON.stringify({ 
+                query: query,
+                history: conversationHistory 
+            }),
+            credentials: 'include'  // Include cookies for session
         });
         
         console.log('Response status:', response.status);
@@ -157,6 +164,11 @@ queryForm.addEventListener('submit', async (e) => {
         removeLoading();
         
         if (data.success) {
+            // Update conversation history
+            if (data.history) {
+                conversationHistory = data.history;
+            }
+            
             // Add assistant response
             console.log('Adding response:', data.response);
             addMessage(data.response);

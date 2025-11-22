@@ -3,3 +3,8 @@ python-dotenv
 flask
 flask-cors
 gunicorn
+deep-translator
+langchain
+langchain-openai
+langchain-anthropic
+langchain-groq
