@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tourism AI Assistant</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <div class="logo">
+                <svg class="logo-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M2 17L12 22L22 17" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M2 12L12 17L22 12" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <h1>Tourism AI Assistant</h1>
+            </div>
+            <p class="subtitle">Plan your perfect trip with AI-powered weather and attraction insights</p>
+        </header>
+
+        <div class="main-content">
+            <div class="chat-container">
+                <div class="chat-messages" id="chatMessages">
+                    <div class="welcome-message">
+                        <h2>👋 Welcome!</h2>
+                        <p>I can help you plan your trip by providing:</p>
+                        <ul>
+                            <li>🌤️ Current weather information</li>
+                            <li>🏛️ Tourist attraction suggestions</li>
+                            <li>📍 Location-specific recommendations</li>
+                        </ul>
+                        <div class="examples">
+                            <p class="examples-title">Try asking:</p>
+                            <div class="example-chip" onclick="fillExample(this)">I'm going to Bangalore, let's plan my trip.</div>
+                            <div class="example-chip" onclick="fillExample(this)">What's the temperature in Paris?</div>
+                            <div class="example-chip" onclick="fillExample(this)">What are the places I can visit in Tokyo?</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="input-container">
+                    <form id="queryForm" class="query-form">
+                        <input 
+                            type="text" 
+                            id="queryInput" 
+                            class="query-input" 
+                            placeholder="Where do you want to go? Ask me about weather, attractions, or both..."
+                            autocomplete="off"
+                            required
+                        >
+                        <button type="submit" class="send-button" id="sendButton">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                <path d="M22 2L11 13" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M22 2L15 22L11 13L2 9L22 2Z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </button>
+                    </form>
+                    <p class="hint">Press Enter to send</p>
+                </div>
+            </div>
+        </div>
+
+        <footer class="footer">
+            <p>Powered by OpenAI, Open-Meteo, and OpenStreetMap</p>
+        </footer>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>
