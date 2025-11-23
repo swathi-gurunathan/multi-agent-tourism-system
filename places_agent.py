@@ -57,18 +57,30 @@ class PlacesAgent:
         # Search radius in meters (approximately 20km)
         radius = 20000
         
-        # Overpass QL query to find tourist attractions
+        # Overpass QL query to find FAMOUS tourist attractions only
+        # Prioritize attractions with Wikipedia entries (indicates fame/notability)
         query = f"""
         [out:json];
         (
-          node["tourism"](around:{radius},{lat},{lon});
-          way["tourism"](around:{radius},{lat},{lon});
-          node["historic"](around:{radius},{lat},{lon});
-          way["historic"](around:{radius},{lat},{lon});
-          node["leisure"="park"](around:{radius},{lat},{lon});
-          way["leisure"="park"](around:{radius},{lat},{lon});
+          node["tourism"="attraction"]["wikidata"](around:{radius},{lat},{lon});
+          way["tourism"="attraction"]["wikidata"](around:{radius},{lat},{lon});
+          node["tourism"="museum"]["wikidata"](around:{radius},{lat},{lon});
+          way["tourism"="museum"]["wikidata"](around:{radius},{lat},{lon});
+          node["historic"="monument"]["wikidata"](around:{radius},{lat},{lon});
+          way["historic"="monument"]["wikidata"](around:{radius},{lat},{lon});
+          node["historic"="castle"]["wikidata"](around:{radius},{lat},{lon});
+          way["historic"="castle"]["wikidata"](around:{radius},{lat},{lon});
+          node["tourism"="attraction"](around:{radius},{lat},{lon});
+          way["tourism"="attraction"](around:{radius},{lat},{lon});
+          node["tourism"="museum"](around:{radius},{lat},{lon});
+          way["tourism"="museum"](around:{radius},{lat},{lon});
+          node["tourism"="viewpoint"](around:{radius},{lat},{lon});
+          node["historic"="monument"](around:{radius},{lat},{lon});
+          way["historic"="monument"](around:{radius},{lat},{lon});
+          node["historic"="castle"](around:{radius},{lat},{lon});
+          way["historic"="castle"](around:{radius},{lat},{lon});
         );
-        out body {limit * 3};
+        out body {limit * 10};
         """
         
         try:
@@ -78,20 +90,70 @@ class PlacesAgent:
             data = response.json()
             elements = data.get('elements', [])
             
-            # Extract place names
+            # Extract place names with quality filtering
             places = []
             seen_names = set()
             
+            # Enhanced priority scoring: heavily favor famous landmarks
+            scored_elements = []
             for element in elements:
                 tags = element.get('tags', {})
                 name = tags.get('name')
                 
-                if name and name not in seen_names:
+                if name:
+                    # Calculate priority score based on multiple factors
+                    score = 0
+                    
+                    # 1. Wikipedia/Wikidata presence (HIGHEST priority - indicates fame)
+                    if 'wikidata' in tags:
+                        score += 200
+                    if 'wikipedia' in tags:
+                        score += 150
+                    
+                    # 2. Type of attraction
+                    tourism_type = tags.get('tourism', '')
+                    historic_type = tags.get('historic', '')
+                    
+                    if tourism_type == 'attraction':
+                        score += 100
+                    elif tourism_type == 'museum':
+                        score += 90
+                    elif tourism_type == 'viewpoint':
+                        score += 70
+                    
+                    if historic_type == 'castle':
+                        score += 95
+                    elif historic_type == 'monument':
+                        score += 85
+                    elif historic_type == 'memorial':
+                        score += 75
+                    
+                    # 3. UNESCO World Heritage Site
+                    if 'heritage' in tags or tags.get('unesco') == 'yes':
+                        score += 300
+                    
+                    # 4. International importance indicators
+                    if tags.get('importance'):
+                        try:
+                            score += int(float(tags.get('importance')) * 50)
+                        except:
+                            pass
+                    
+                    # Only include if it has a reasonable score (filters out minor places)
+                    if score >= 50 or 'wikidata' in tags or 'wikipedia' in tags:
+                        scored_elements.append((score, name, tags))
+            
+            # Sort by score (highest first) - FAMOUS places appear first
+            scored_elements.sort(key=lambda x: x[0], reverse=True)
+            
+            # Extract top-scored unique places
+            for score, name, tags in scored_elements:
+                if name not in seen_names:
                     # Translate to English if needed
                     translated_name = self.translate_to_english(name)
                     
                     # Avoid duplicates (original and translated)
-                    if translated_name not in seen_names:
+                    if translated_name not in seen_names and translated_name.lower() not in [p.lower() for p in places]:
                         places.append(translated_name)
                         seen_names.add(name)
                         seen_names.add(translated_name)

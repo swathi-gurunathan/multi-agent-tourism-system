@@ -15,11 +15,7 @@ app.secret_key = os.getenv('SECRET_KEY', os.urandom(24))  # For session manageme
 CORS(app, supports_credentials=True)
 
 # Initialize the tourism agent
-# Supports: Groq (free), OpenAI, Anthropic
-# Set LLM_PROVIDER in .env (default: groq)
-# Get free Groq API key at: https://console.groq.com
-api_key = os.getenv('GROQ_API_KEY') or os.getenv('OPENAI_API_KEY') or os.getenv('ANTHROPIC_API_KEY')
-tourism_agent = TourismAgent(api_key)
+tourism_agent = TourismAgent()
 
 
 @app.route('/')
